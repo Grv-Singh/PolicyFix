@@ -18,27 +18,6 @@ check() {
     unset message
 }
 
-checkTerminalDimensions() {
-    min_cols=100
-    min_rows=25
-    cols=$(tput cols)
-    rows=$(tput lines)
-    
-    if [ "$cols" -lt "$min_cols" ] || [ "$rows" -lt "$min_rows" ]; then
-        printf '%sWARNING: Terminal dimensions should be at least %dx%d (current: %dx%d)%s\n' "$red" "$min_cols" "$min_rows" "$cols" "$rows" "$rc"
-        printf 'Resizing terminal...'
-        printf '\e[8;%d;%dt' $min_rows $min_cols > /dev/tty
-        sleep 1
-        # Verify resize worked
-        cols=$(tput cols)
-        rows=$(tput lines)
-        if [ "$cols" -lt "$min_cols" ] || [ "$rows" -lt "$min_rows" ]; then
-            printf '\n%sFailed to resize terminal. Please manually resize to at least %dx%d%s\n' "$red" "$min_cols" "$min_rows" "$rc"
-            exit 1
-        fi
-    fi
-}
-
 findArch() {
     case "$(uname -m)" in
         x86_64|amd64) arch="x86_64" ;;
@@ -57,8 +36,6 @@ getUrl() {
 findArch
 temp_file=$(mktemp)
 check $? "Creating the temporary file"
-
-checkTerminalDimensions
 
 curl -fsL "$(getUrl)" -o "$temp_file"
 check $? "Downloading linutil"
